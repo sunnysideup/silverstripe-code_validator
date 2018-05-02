@@ -1,0 +1,7 @@
+---
+Name: moduleconfig
+After: 'framework/*'
+---
+
+ValidateCodeFieldForObject:
+  length: 10

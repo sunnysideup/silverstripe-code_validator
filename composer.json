@@ -1,0 +1,30 @@
+{
+    "name": "sunnysideup/code-validator",
+    "type": "silverstripe-module",
+    "description": "Add a unique code to a specific field in a Data Object.",
+    "keywords": [
+        "Silverstripe-CMS",
+        "CMS",
+        "Silverstripe",
+        "DataObject",
+        "Unique",
+        "UID",
+        "Code",
+        "Hash"
+    ],
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Nicolaas Francken",
+            "email": "modules@sunnysideup.co.nz",
+            "role": "lead developer"
+        }
+    ],
+    "require": {
+        "silverstripe/framework": "~3.6",
+        "silverstripe/cms": "~3.6"
+    },
+    "extra": {
+        "installer-name": "code-validator"
+    }
+}
