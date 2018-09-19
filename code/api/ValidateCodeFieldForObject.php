@@ -25,43 +25,61 @@ class ValidateCodeFieldForObject extends Object
      *
      * @param DataObject | String $obj
      * @param Boolean $createCode
+     * @param String $field
      */
 
-    public function checkCode($obj, $createCode = false)
+    public function checkCode($obj, $createCode = false, $field = "Code")
     {
         //exception dealing with Strings
         $isObject = true;
         if (! is_object($obj)) {
             $str = $obj;
             $obj = new DataObject();
-            $obj->Code = strval($str);
+            $obj->$field = strval($str);
             $isObject = false;
         }
         if ($createCode) {
-            if (!$obj->Code || strlen($obj->Code) != $this->Config()->get("length")) {
-                $obj->Code = substr(md5(uniqid($obj->ID, true)), 0, $this->Config()->get("length"));
+            if (!$obj->$field || strlen($obj->$field) != $this->Config()->get("length")) {
+                $obj->$field = $this->CreateCode();
+            }
+        } else {
+            $obj->$field = trim($obj->$field);
+            foreach ($this->replacements as $regex => $replace) {
+                $obj->$field = preg_replace($regex, $replace, $obj->$field);
             }
         }
-        $obj->Code = trim($obj->Code);
-        foreach ($this->replacements as $regex => $replace) {
-            $obj->Code = preg_replace($regex, $replace, $obj->Code);
-        }
-        $obj->Code = trim($obj->Code);
-        if (!$obj->Code) {
-            "ZZZ";
+        if (!$obj->$field) {
+            $obj->$field = strtoupper($field)."-NOT-SET";
         }
         //make upper-case
-        $obj->Code = trim(strtoupper($obj->Code));
+        $obj->$field = trim(strtoupper($obj->$field));
         //check for other ones.
-        $count = 2;
-        $code = $obj->Code;
-        while ($isObject && $obj::get()
-            ->filter(array("Code" => $obj->Code))
-            ->exclude(array("ID" => $obj->ID))->Count()
+        $count = 0;
+        $code = $obj->$field;
+        while (
+            $isObject && 
+            $obj::get()
+                ->filter([$field => $obj->$field])
+                ->exclude(["ID" => intval($obj->ID) - 0])->Count() > 0 &&
+            $count < 1000
         ) {
-            $obj->Code = $code . '-' . $count;
+            $obj->$field = $this->CreateCode();
             $count++;
         }
-        return $obj->Code;
+        
+        return $obj->$field;
+    }
+
+    public function CreateCode()
+    {
+        $seed = str_split(
+                         .'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.
+                         .'0123456789'); // and any other characters
+        $rand = '';
+        foreach (array_rand($seed, $this->Config()->get("length")) as $k) {
+            $rand .= $seed[$k];
+        }
+
+        return $rand;
     }
 }
