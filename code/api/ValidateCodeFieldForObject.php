@@ -72,9 +72,7 @@ class ValidateCodeFieldForObject extends Object
 
     public function CreateCode()
     {
-        $seed = str_split(
-                         .'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.
-                         .'0123456789'); // and any other characters
+        $seed = str_split('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'); // and any other characters
         $rand = '';
         foreach (array_rand($seed, $this->Config()->get("length")) as $k) {
             $rand .= $seed[$k];
