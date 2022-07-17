@@ -3,18 +3,25 @@
  */
 
 namespace Sunnysideup\CodeValidator\Api;
+
 use SilverStripe\ORM\DataObject;
+
+use SilverStripe\Core\Config\Configurable;
 
 class ValidateCodeFieldForObject
 {
+    use Configurable;
+
     private static $length = 7;
+
+    private static $strict_length_checking = false;
 
     private static $php_format_function = 'trim';
 
     /**
      * @var Array
      */
-    private $replacements = array(
+    private static $replacements = array(
         '/&amp;/u' => '-and-',
         '/&/u' => '-and-',
         '/\s/u' => '-', // remove whitespace
@@ -27,16 +34,21 @@ class ValidateCodeFieldForObject
     /**
      * makes sure that code is unique and gets rid of special characters
      * should be run in onBeforeWrite
+     * you can pass an object or a proposed code.
      *
-     * @param DataObject | String $obj
-     * @param Boolean $createCode
-     * @param String $field
+     * @param DataObject|string $obj
+     * @param bool $createCode
+     * @param string $field
      */
 
-    public function checkCode($obj, $createCode = false, $field = "Code")
+    public function checkCode(string $field, $obj = '', ?bool $createCode = false)
     {
         //exception dealing with Strings
-        $formatFunction = $this->Config()->get("php_format_function")
+        $config =  $this->Config();
+        $formatFunction = $config->get("php_format_function");
+        $strictLenghtChecking = $config->get("strict_length_checking");
+        $replacements = $config->get("replacements");
+        $supposedLength = $config->get("length");
         $isObject = true;
         if (! is_object($obj)) {
             $str = $obj;
@@ -45,17 +57,22 @@ class ValidateCodeFieldForObject
             $isObject = false;
         }
         if ($createCode) {
-            if (!$obj->$field || strlen($obj->$field) != $this->Config()->get("length")) {
+            // empty
+            if (!$obj->$field) {
+                $obj->$field = $this->CreateCode();
+            }
+            // strict length
+            if ($strictLenghtChecking && strlen($obj->$field) !== $supposedLength) {
                 $obj->$field = $this->CreateCode();
             }
         } else {
             $obj->$field = trim($obj->$field);
-            foreach ($this->replacements as $regex => $replace) {
+            foreach ($replacements as $regex => $replace) {
                 $obj->$field = preg_replace($regex, $replace, $obj->$field);
             }
         }
         if (!$obj->$field) {
-            $obj->$field = $formatFunction($field)."-NOT-SET";
+            $obj->$field = trim($formatFunction($field)."-NOT-SET");
         }
         //make upper-case
         $obj->$field = trim($formatFunction($obj->$field));
@@ -66,7 +83,7 @@ class ValidateCodeFieldForObject
             $isObject &&
             $obj::get()
                 ->filter([$field => $obj->$field])
-                ->exclude(["ID" => intval($obj->ID) - 0])->Count() > 0 &&
+                ->exclude(["ID" => intval($obj->ID) - 0])->exists() &&
             $count < 1000
         ) {
             $obj->$field = $this->CreateCode();
@@ -76,11 +93,11 @@ class ValidateCodeFieldForObject
         return $obj->$field;
     }
 
-    public function CreateCode()
+    public function CreateCode(?int $length = 10)
     {
-        $seed = str_split('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'); // and any other characters
+        $seed = str_split('abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'); // and any other characters
         $rand = '';
-        foreach (array_rand($seed, $this->Config()->get("length")) as $k) {
+        foreach (array_rand($seed, $length) as $k) {
             $rand .= $seed[$k];
         }
 
