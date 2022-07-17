@@ -36,12 +36,12 @@ class ValidateCodeFieldForObject
      * should be run in onBeforeWrite
      * you can pass an object or a proposed code.
      *
+     * @param string $field
      * @param DataObject|string $obj
      * @param bool $createCode
-     * @param string $field
      */
 
-    public function checkCode(string $field, $obj = '', ?bool $createCode = false)
+    public function checkCode(string $field, $obj = '', ?bool $createCode = false) : string
     {
         //exception dealing with Strings
         $config =  $this->Config();
@@ -93,7 +93,7 @@ class ValidateCodeFieldForObject
         return $obj->$field;
     }
 
-    public function CreateCode(?int $length = 10)
+    public function CreateCode(?int $length = 10) : string
     {
         $seed = str_split('abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'); // and any other characters
         $rand = '';
