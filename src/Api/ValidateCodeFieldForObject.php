@@ -2,9 +2,14 @@
 /**
  */
 
-class ValidateCodeFieldForObject extends Object
+namespace Sunnysideup\CodeValidator\Api;
+use SilverStripe\ORM\DataObject;
+
+class ValidateCodeFieldForObject
 {
     private static $length = 7;
+
+    private static $php_format_function = 'trim';
 
     /**
      * @var Array
@@ -31,6 +36,7 @@ class ValidateCodeFieldForObject extends Object
     public function checkCode($obj, $createCode = false, $field = "Code")
     {
         //exception dealing with Strings
+        $formatFunction = $this->Config()->get("php_format_function")
         $isObject = true;
         if (! is_object($obj)) {
             $str = $obj;
@@ -49,15 +55,15 @@ class ValidateCodeFieldForObject extends Object
             }
         }
         if (!$obj->$field) {
-            $obj->$field = strtoupper($field)."-NOT-SET";
+            $obj->$field = $formatFunction($field)."-NOT-SET";
         }
         //make upper-case
-        $obj->$field = trim(strtoupper($obj->$field));
+        $obj->$field = trim($formatFunction($obj->$field));
         //check for other ones.
         $count = 0;
         $code = $obj->$field;
         while (
-            $isObject && 
+            $isObject &&
             $obj::get()
                 ->filter([$field => $obj->$field])
                 ->exclude(["ID" => intval($obj->ID) - 0])->Count() > 0 &&
@@ -66,7 +72,7 @@ class ValidateCodeFieldForObject extends Object
             $obj->$field = $this->CreateCode();
             $count++;
         }
-        
+
         return $obj->$field;
     }
 
