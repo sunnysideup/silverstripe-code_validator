@@ -9,7 +9,7 @@ class MyObject extends DataObject
     {
         parent::onBeforeWrite();
         $obj = new ValidateCodeFieldForObject();
-        $obj->CodeField = $obj->checkCode("CodeField", $myObject);
+        $obj->CodeField = $obj->checkCode("CodeField", $this);
     }
 }
 
