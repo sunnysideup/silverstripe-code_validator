@@ -3,5 +3,19 @@ Name: moduleconfig
 After: 'framework/*'
 ---
 
-ValidateCodeFieldForObject:
+ Sunnysideup\CodeValidator\Api\ValidateCodeFieldForObject:
+
   length: 10
+
+  strict_length_checking: false;
+
+  php_format_function: 'trim';
+
+  replacements:
+    '/&amp;/u': '-and-',
+    '/&/u': '-and-',
+    '/\s/u': '-'                #   remove whitespace
+    '/[^A-Za-z0-9.\-_]+/u': ''  #   remove non-ASCII chars, only allow alphanumeric, dashes and dots.
+    '/[\-]{2,}/u': '-'          #   remove duplicate dashes
+    '/[\_]{2,}/u': '_'          #   remove duplicate underscores
+    '/^[\.\-_]/u': ''           #   Remove all leading dots, dashes or underscores
